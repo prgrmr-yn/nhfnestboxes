@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Workshop Project Manager</title>
+    <link rel="stylesheet" href="./style.css">
+
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #e5e7eb; padding: 20px; color: #1f2937; }
         .project-header { max-width: 1100px; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; }
         .board-container { max-width: 1100px; margin: 0 auto 40px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
 
-        .board-title-area { border-bottom: 2px solid #3b82f6; margin-bottom: 20px; padding-bottom: 5px; display: flex; justify-content: space-between; }
-        .board-title-input { font-size: 1.5rem; font-weight: bold; color: #1e40af; background: transparent; border: none; outline: none; width: 70%; }
+        .board-title-area { border-bottom: 2px solid #3b82f6; margin-bottom: 20px; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .board-title-input { font-size: 1.5rem; font-weight: bold; color: #1e40af; background: transparent; border: none; outline: none; width: 60%; }
 
         .setup-bar { display: flex; gap: 15px; margin-bottom: 15px; background: #f9fafb; padding: 10px; border-radius: 8px; align-items: flex-end; }
         .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; background: #f3f4f6; padding: 15px; border-radius: 8px; border: 1px solid #d1d5db; }
@@ -23,6 +25,7 @@
         .btn-add-piece { background: #10b981; color: white; }
         .btn-new-board { background: #3b82f6; color: white; font-size: 1rem; }
         .btn-delete { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
+        .btn-print { background: #1f2937; color: white; }
 
         .canvas-wrap { margin-top: 20px; background: #111827; padding: 20px; border-radius: 8px; overflow-x: auto; position: relative; }
         .canvas-board-name { color: #60a5fa; font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid #3b82f6; padding-left: 10px; }
@@ -30,10 +33,40 @@
 
         .stats { margin-top: 10px; font-weight: bold; font-size: 0.9rem; display: flex; justify-content: space-between; }
         .danger { color: #dc2626; }
+
+        /* Assembly Table Styles */
+        .assembly-section { margin-top: 30px; border-top: 2px dashed #000; padding-top: 20px; }
+        .instruction-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th { background: #f3f4f6; text-align: left; padding: 10px; font-size: 0.75rem; text-transform: uppercase; border: 1px solid #000; }
+        td { padding: 10px; border: 1px solid #000; font-size: 0.9rem; }
+        .check-col { width: 30px; text-align: center; }
+        .notes-input { width: 95%; border: none; border-bottom: 1px solid #ddd; font-family: inherit; font-size: 0.85rem; }
+
+        @media print {
+            body { background: white !important; padding: 0; color: black !important; }
+            .project-header, .setup-bar, .controls, .btn-delete, .btn-print, .btn-new-board { display: none !important; }
+            .board-container { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .canvas-wrap { background: white !important; padding: 10px 0 !important; }
+            .canvas-board-name { color: black !important; border-left: 4px solid black !important; }
+            svg { outline: 2px solid black !important; }
+            svg path { fill: white !important; stroke: black !important; stroke-width: 2px !important; }
+            svg text { fill: black !important; font-weight: bold !important; }
+            svg rect { fill: #eee !important; stroke: black !important; stroke-dasharray: 2,2 !important; }
+            .notes-input { border: none !important; }
+            .assembly-section { page-break-before: always; }
+        }
     </style>
 </head>
 <body>
 
+<nav class="top-nav">
+    <div class="nav-logo">NHF Workshop Division</div>
+    <div class="nav-links">
+        <a href="../strips/index.html" class="btn-nav-item btn-shortcut">📐 Phase 1: Strip Cutter</a>
+        <a href="../index.html" class="btn-nav-item btn-back">← Back to Menu</a>
+    </div>
+</nav>
 <div class="project-header">
     <h1>Project Cut List</h1>
     <button class="btn-new-board" onclick="addNewBoard()">+ Add New Board</button>
@@ -53,19 +86,22 @@
 
         container.innerHTML = `
             <div class="board-title-area">
-                <input type="text" class="board-title-input" value="BOARD ${boardCount}" placeholder="Board Name..." oninput="updateCanvasTitle('${boardId}')">
-                <button class="btn-delete" onclick="document.getElementById('${boardId}').remove()">Delete Board</button>
+                <input type="text" class="board-title-input" value="STRIP ${boardCount}" oninput="updateCanvasTitle('${boardId}')">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-print" onclick="window.print()">Print Blueprint</button>
+                    <button class="btn-delete" onclick="document.getElementById('${boardId}').remove()">Delete</button>
+                </div>
             </div>
 
             <div class="setup-bar">
-                <div class="field"><label>Stock Width</label><input type="number" class="stockW" value="2400" oninput="renderBoard('${boardId}')"></div>
-                <div class="field"><label>Stock Height</label><input type="number" class="stockH" value="260" oninput="renderBoard('${boardId}')"></div>
+                <div class="field"><label>Strip Width</label><input type="number" class="stockW" value="2400" oninput="renderBoard('${boardId}')"></div>
+                <div class="field"><label>Strip Height</label><input type="number" class="stockH" value="260" oninput="renderBoard('${boardId}')"></div>
                 <div class="field"><label>Blade Kerf</label><input type="number" class="kerf" value="3" oninput="renderBoard('${boardId}')"></div>
                 <button style="background:#6b7280; color:white;" onclick="resetBoard('${boardId}')">Clear Cuts</button>
             </div>
 
             <div class="controls">
-                <div class="field"><label>Cut Name</label><input type="text" class="cutName" value="Piece ${boardCount}"></div>
+                <div class="field"><label>Piece Name</label><input type="text" class="cutName" value="P1"></div>
                 <div class="field"><label>Top W</label><input type="number" class="valTop" value="500"></div>
                 <div class="field"><label>Bot W</label><input type="number" class="valBot" value="470"></div>
                 <div class="field"><label>Height</label><input type="number" class="valHeight" value="260"></div>
@@ -79,8 +115,27 @@
             </div>
 
             <div class="canvas-wrap">
-                <div class="canvas-board-name" id="display-title-${boardId}">BOARD ${boardCount}</div>
+                <div class="canvas-board-name" id="display-title-${boardId}">STRIP ${boardCount}</div>
                 <svg class="mainSvg" width="900" height="150"></svg>
+            </div>
+
+            <div class="assembly-section">
+                <div class="instruction-header">
+                    <h3 style="margin:0; text-transform:uppercase;">🛠 Assembly Checklist & Piece Notes</h3>
+                    <span>Strip: <span class="print-stockW">2400</span>mm</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="check-col">✓</th>
+                            <th style="width: 150px;">Piece ID</th>
+                            <th style="width: 200px;">Dimensions (mm)</th>
+                            <th>Builder Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="assembly-body">
+                        </tbody>
+                </table>
             </div>
         `;
 
@@ -97,20 +152,40 @@
     function addPiece(boardId) {
         const board = document.getElementById(boardId);
         const cuts = JSON.parse(board.dataset.cuts);
+        const stockW = parseFloat(board.querySelector('.stockW').value);
+        const stockH = parseFloat(board.querySelector('.stockH').value);
+        const kerf = parseFloat(board.querySelector('.kerf').value);
 
         const newPiece = {
             name: board.querySelector('.cutName').value,
             top: parseFloat(board.querySelector('.valTop').value),
             bot: parseFloat(board.querySelector('.valBot').value),
             h: parseFloat(board.querySelector('.valHeight').value),
-            col: board.querySelector('.cutColor').value
+            col: board.querySelector('.cutColor').value,
+            notes: "" // Placeholder for notes
         };
+
+        if (newPiece.h > stockH) { alert(`⚠️ Height Error!`); return; }
+
+        let currentTopX = 0;
+        let currentBotX = 0;
+        cuts.forEach((c) => {
+            currentTopX += c.top + kerf;
+            currentBotX += c.bot + kerf;
+        });
+
+        if ((currentTopX + newPiece.top) > stockW || (currentBotX + newPiece.bot) > stockW) {
+            alert(`⚠️ Error: Piece exceeds strip width!`);
+            return;
+        }
 
         cuts.push(newPiece);
         board.dataset.cuts = JSON.stringify(cuts);
-
-        // ALL FIELDS REMAIN AS THEY ARE (Sticky behavior)
         renderBoard(boardId);
+
+        // Increment piece name for convenience (P1 -> P2)
+        const nameInput = board.querySelector('.cutName');
+        nameInput.value = nameInput.value.replace(/\d+$/, (n) => parseInt(n) + 1);
     }
 
     function resetBoard(boardId) {
@@ -126,11 +201,14 @@
         const fullH = parseFloat(board.querySelector('.stockH').value);
         const kerf = parseFloat(board.querySelector('.kerf').value);
         const svg = board.querySelector('.mainSvg');
+        const assemblyBody = board.querySelector('.assembly-body');
 
+        board.querySelector('.print-stockW').innerText = fullW;
         const scale = 900 / fullW;
         const visualHeight = fullH * scale;
         svg.setAttribute("height", visualHeight);
         svg.innerHTML = "";
+        assemblyBody.innerHTML = ""; // Clear list
 
         let curXTop = 0;
         let curXBot = 0;
@@ -144,6 +222,7 @@
             const x3 = (curXBot + c.bot) * scale;
             const x4 = curXBot * scale;
 
+            // DRAW PIECE
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", `M ${x1} ${yOff} L ${x2} ${yOff} L ${x3} ${yOff + pieceH} L ${x4} ${yOff + pieceH} Z`);
             path.setAttribute("fill", c.col);
@@ -151,9 +230,28 @@
             svg.appendChild(path);
 
             const contrast = getContrastYIQ(c.col);
-            drawLabel(svg, x1 + (c.top*scale)/2, yOff + (pieceH/2) + 4, c.name, contrast, "11px");
-            drawLabel(svg, x1 + (c.top*scale)/2, yOff + 10, c.top, contrast, "9px");
-            drawLabel(svg, x4 + (c.bot*scale)/2, yOff + pieceH - 4, c.bot, contrast, "9px");
+            const minDim = Math.min(c.top, c.bot) * scale;
+            const nameSize = Math.max(6, Math.min(12, minDim / 5));
+            const dimSize = Math.max(5, Math.min(9, minDim / 8));
+
+            if (minDim > 15) {
+                drawLabel(svg, x1 + (c.top*scale)/2, yOff + (pieceH/2) + (nameSize/3), c.name, contrast, nameSize + "px");
+                drawLabel(svg, x1 + (c.top*scale)/2, yOff + dimSize + 2, c.top, contrast, dimSize + "px");
+                drawLabel(svg, x4 + (c.bot*scale)/2, yOff + pieceH - 4, c.bot, contrast, dimSize + "px");
+            }
+
+            // ADD TO ASSEMBLY CHECKLIST
+            const row = assemblyBody.insertRow();
+            const isAngled = c.top !== c.bot;
+            row.innerHTML = `
+                <td class="check-col"><input type="checkbox"></td>
+                <td><strong>${c.name}</strong></td>
+                <td>
+                    T: ${c.top}mm | B: ${c.bot}mm<br>
+                    <small>Height: ${c.h}mm ${isAngled ? '(Angled)' : ''}</small>
+                </td>
+                <td><input type="text" class="notes-input" placeholder="Add assembly notes here..."></td>
+            `;
 
             curXTop += c.top;
             curXBot += c.bot;
@@ -185,6 +283,7 @@
         t.setAttribute("x", x); t.setAttribute("y", y);
         t.setAttribute("font-size", size); t.setAttribute("text-anchor", "middle");
         t.setAttribute("fill", col); t.style.fontWeight = "bold";
+        t.style.pointerEvents = "none";
         t.textContent = txt;
         svg.appendChild(t);
     }

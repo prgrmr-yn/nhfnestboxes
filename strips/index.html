@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
     <title>Plywood Workshop - Responsive Labels</title>
     <style>
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
@@ -49,9 +50,16 @@
             .remaining-piece-row { background: #f3f4f6 !important; font-weight: bold; }
         }
     </style>
+
 </head>
 <body>
-
+<nav class="top-nav">
+    <div class="nav-logo">NHF STRIP Division</div>
+    <div class="nav-links">
+        <a href="../stripcuts/index.html" class="btn-nav-item btn-shortcut">📐 Phase 2: Strip Cutter</a>
+        <a href="../index.html" class="btn-nav-item btn-back">← Back to Menu</a>
+    </div>
+</nav>
 <div class="project-header">
     <h1>Workshop Blueprint Generator</h1>
     <button class="btn-new" onclick="addNewBoard()">+ New Sheet Template</button>

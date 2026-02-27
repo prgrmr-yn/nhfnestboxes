@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHF Nestbox Template Maker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: #1a202c;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 5px solid #2563eb;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            opacity: 0.8;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 15px auto 0;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 900px;
+            margin: -40px auto 40px;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .nav-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            border-color: #2563eb;
+        }
+
+        .nav-card h2 {
+            margin-top: 0;
+            color: #111827;
+            font-size: 1.4rem;
+        }
+
+        .nav-card p {
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        /* Styled Buttons from your theme */
+        .btn-link {
+            display: inline-block;
+            text-decoration: none;
+            padding: 15px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-dark {
+            background: #000;
+            color: white;
+        }
+
+        .btn-dark:hover {
+            background: #333;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            background: #eff6ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <h1>NHF Nestbox Template Maker</h1>
+        <p>Precision woodworking tools for bird conservationists. Design your cuts, minimize waste, and build better homes for nature.</p>
+    </header>
+
+    <main class="container">
+        <div class="card-grid">
+            <div class="nav-card">
+                <div>
+                    <div class="icon-circle">🪵</div>
+                    <h2>Phase 1: Strip Cutting</h2>
+                    <p>Map out how to cut your large plywood sheets into manageable long strips. Ideal for high-volume production.</p>
+                </div>
+                <a href="strips/index.html" class="btn-link btn-dark">Take me to cut strips from plywood</a>
+            </div>
+
+            <div class="nav-card">
+                <div>
+                    <div class="icon-circle">📐</div>
+                    <h2>Phase 2: Part Fabrication</h2>
+                    <p>Once you have your strips, use this tool to calculate the final cross-cuts for walls, roofs, and floors.</p>
+                </div>
+                <a href="stripcuts/index.html" class="btn-link btn-primary">Take me to make cuts from strips</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        © 2026 NHF Workshop Blueprint Division • Built for Precision
+    </footer>
+
+</body>
+</html>
