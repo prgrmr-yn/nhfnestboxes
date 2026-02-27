@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plywood Workshop - Responsive Labels</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
+        .project-header { max-width: 1200px; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; }
+        .board-container { max-width: 1200px; margin: 0 auto 40px; background: white; padding: 25px; border-radius: 12px; border: 1px solid #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .board-title-area { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .board-title-input { font-size: 1.5rem; font-weight: bold; color: #000; background: transparent; border: none; outline: none; width: 60%; }
+        .setup-grid, .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .setup-grid { background: #f9fafb; border: 1px solid #e5e7eb; }
+        .controls-grid { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.7rem; font-weight: 800; color: #4b5563; text-transform: uppercase; }
+        input { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; }
+        button { padding: 12px 20px; cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: all 0.2s; }
+        .btn-add { background: #000; color: white; }
+        .btn-new { background: #2563eb; color: white; }
+        .btn-del { background: #dc2626; color: white; }
+        .btn-print { background: #4b5563; color: white; }
+        .canvas-wrap { width: 100%; background: #2d3748; padding: 40px 0; border-radius: 8px; display: flex; flex-direction: column; align-items: center; overflow-x: auto; border: 1px solid #000; position: relative; }
+        .canvas-board-name { color: #fff; font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; }
+        svg { background: #fff; }
+        .summary-section { margin-top: 30px; border-top: 2px solid #000; padding-top: 20px; }
+        .disclaimer-box { background: #fff; border: 1px solid #000; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; line-height: 1.4; color: #000; }
+        .summary-title { font-size: 1.2rem; font-weight: bold; color: #000; margin-bottom: 10px;}
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #000; color: #fff; text-align: left; padding: 12px; font-size: 0.8rem; text-transform: uppercase; border: 1px solid #000; }
+        td { padding: 12px; border: 1px solid #000; font-size: 0.95rem; color: #000; }
+        .stats-bar { display: flex; justify-content: space-around; padding: 15px; background: #1a202c; color: white; border-radius: 8px; margin-top: -10px; margin-bottom: 20px; font-family: monospace; }
+        @media print {
+            body { background: white !important; padding: 0; color: black !important; }
+            .project-header, .setup-grid, .controls-grid, .btn-del, .btn-print, .stats-bar, .btn-new { display: none !important; }
+            .board-container { border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; box-shadow: none !important; }
+            .canvas-wrap { background: white !important; border: none !important; padding: 10px 0; page-break-after: always; }
+            .canvas-board-name { color: black !important; text-decoration: underline; margin-bottom: 10px; }
+            svg { border-top: 1px solid #000 !important; border-left: 1px solid #000 !important; border-right: 1px solid #000 !important; border-bottom: none !important; }
+            svg rect.colored-piece { fill: white !important; stroke: black !important; stroke-width: 2px !important; }
+            svg text { fill: black !important; font-weight: bold !important; }
+            svg rect.kerf-indicator { fill: black !important; stroke: none !important; opacity: 1 !important; }
+            svg rect.offcut-area { fill: white !important; stroke: black !important; stroke-dasharray: 4 !important; }
+            .print-hide { display: none !important; }
+            .summary-section { page-break-before: always; border-top: none !important; padding-top: 0; }
+            th { background: white !important; color: black !important; border: 2px solid #000 !important; }
+            td { border: 1px solid #000 !important; color: black !important; }
+            .remaining-piece-row { background: #f3f4f6 !important; font-weight: bold; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="project-header">
+    <h1>Workshop Blueprint Generator</h1>
+    <button class="btn-new" onclick="addNewBoard()">+ New Sheet Template</button>
+</div>
+
+<div id="boards-list"></div>
+
+<script>
+    let boardCount = 0;
+
+    function addNewBoard() {
+        boardCount++;
+        const boardId = `board-${boardCount}`;
+        const div = document.createElement('div');
+        div.className = 'board-container';
+        div.id = boardId;
+        div.innerHTML = `
+            <div class="board-title-area">
+                <input type="text" class="board-title-input" value="PLYWOOD SHEET ${boardCount}" oninput="updateUI('${boardId}')">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-print" onclick="window.print()">Print Blueprint</button>
+                    <button class="btn-del" onclick="document.getElementById('${boardId}').remove()">Remove</button>
+                </div>
+            </div>
+            <div class="setup-grid">
+                <div class="field"><label>Sheet Width (mm)</label><input type="number" class="stockW" value="2400" oninput="syncWidths('${boardId}')"></div>
+                <div class="field"><label>Sheet Height (mm)</label><input type="number" class="stockL" value="1200" oninput="renderBoard('${boardId}')"></div>
+                <div class="field"><label>Blade Kerf (mm)</label><input type="number" class="kerf" value="3" oninput="renderBoard('${boardId}')"></div>
+                <div class="field"><label>&nbsp;</label><button style="background:#64748b; color:white;" onclick="resetBoard('${boardId}')">Reset Sheet</button></div>
+            </div>
+            <div class="controls-grid">
+                <div class="field"><label>Strip Label</label><input type="text" class="cutName" value="Strip 1"></div>
+                <div class="field"><label>Cut Width (mm)</label><input type="number" class="valW" value="2400"></div>
+                <div class="field"><label>Cut Height (mm)</label><input type="number" class="valL" value="260"></div>
+                <div class="field"><label>Visual Color</label><input type="color" class="cutColor" value="#3b82f6"></div>
+                <div class="field"><label>&nbsp;</label><button class="btn-add" onclick="addPiece('${boardId}')">Add Strip</button></div>
+            </div>
+            <div class="stats-bar" id="stats-${boardId}">
+                <span>USED: 0mm</span>
+                <span>REMAINING: 1200mm</span>
+            </div>
+            <div class="canvas-wrap">
+                <div class="canvas-board-name" id="display-title-${boardId}">PLYWOOD SHEET ${boardCount}</div>
+                <svg class="mainSvg"></svg>
+            </div>
+            <div class="summary-section">
+                <div class="disclaimer-box">
+                    <strong>⚠️ OPERATOR INSTRUCTIONS:</strong><br>
+                    1. Label each physical strip with its <strong>ID number</strong> (#1, #2...) as you cut.<br>
+                    2. Calculations use a <strong><span class="disp-kerf">3</span>mm kerf</strong>. The "Remaining" height is an estimate.
+                </div>
+                <div class="summary-title">CUTTING SUMMARY & PART INVENTORY</div>
+                <table>
+                    <thead>
+                        <tr><th style="width: 60px;">ID #</th><th>Part Label</th><th>Width (mm)</th><th>Height (mm)</th><th>Side Offcut</th><th style="width: 100px;">Cutter Initials</th></tr>
+                    </thead>
+                    <tbody class="summary-body"></tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('boards-list').appendChild(div);
+        div.dataset.cuts = JSON.stringify([]);
+        renderBoard(boardId);
+    }
+
+    function syncWidths(boardId) {
+        const board = document.getElementById(boardId);
+        board.querySelector('.valW').value = board.querySelector('.stockW').value;
+        renderBoard(boardId);
+    }
+
+    function addPiece(boardId) {
+        const board = document.getElementById(boardId);
+        const cuts = JSON.parse(board.dataset.cuts);
+        const stockL = parseFloat(board.querySelector('.stockL').value);
+        const kerf = parseFloat(board.querySelector('.kerf').value);
+        const newL = parseFloat(board.querySelector('.valL').value);
+        const labelInput = board.querySelector('.cutName');
+        let currentUsedL = 0;
+        cuts.forEach((c) => { currentUsedL += c.l + kerf; });
+        if ((currentUsedL + newL) > stockL) { alert(`⚠️ Exceeds height!`); return; }
+        cuts.push({
+            name: labelInput.value,
+            w: parseFloat(board.querySelector('.valW').value),
+            l: newL,
+            col: board.querySelector('.cutColor').value
+        });
+        labelInput.value = labelInput.value.replace(/\d+$/, (n) => parseInt(n) + 1);
+        board.dataset.cuts = JSON.stringify(cuts);
+        renderBoard(boardId);
+    }
+
+    function renderBoard(boardId) {
+        const board = document.getElementById(boardId);
+        const cuts = JSON.parse(board.dataset.cuts);
+        const stockW = parseFloat(board.querySelector('.stockW').value);
+        const stockL = parseFloat(board.querySelector('.stockL').value);
+        const kerf = parseFloat(board.querySelector('.kerf').value);
+        const svg = board.querySelector('.mainSvg');
+        const summaryBody = board.querySelector('.summary-body');
+        board.querySelector('.disp-kerf').innerText = kerf;
+        const maxVisualWidth = Math.min(window.innerWidth - 100, 1000);
+        const scale = maxVisualWidth / stockW;
+        const visualHeight = stockL * scale;
+        svg.setAttribute("width", maxVisualWidth);
+        svg.setAttribute("height", visualHeight);
+        svg.innerHTML = "";
+        summaryBody.innerHTML = "";
+        const sheetBase = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        sheetBase.setAttribute("width", maxVisualWidth);
+        sheetBase.setAttribute("height", visualHeight);
+        sheetBase.setAttribute("fill", "#fff");
+        sheetBase.setAttribute("stroke", "#000");
+        sheetBase.setAttribute("stroke-width", "1");
+        svg.appendChild(sheetBase);
+        let curY = 0;
+        let totalUsedL = 0;
+
+        cuts.forEach((c, index) => {
+            const pW = c.w * scale;
+            const pL = c.l * scale;
+            const contrast = getContrastYIQ(c.col);
+            const offcutW = stockW - c.w - kerf;
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("class", "colored-piece");
+            rect.setAttribute("x", 0); rect.setAttribute("y", curY);
+            rect.setAttribute("width", pW); rect.setAttribute("height", pL);
+            rect.setAttribute("fill", c.col); rect.setAttribute("stroke", "#000"); rect.setAttribute("stroke-width", "2");
+            svg.appendChild(rect);
+
+            // RESPONSIVE TEXT LOGIC
+            const hFontSize = Math.min(11, pL / 3);
+            const nameFontSize = Math.min(14, pL / 2.5, pW / 12);
+            const wFontSize = Math.min(11, pL / 3.5);
+
+            // Only draw if there is enough vertical space
+            if (pL > 8) {
+                drawLabel(svg, 5, curY + hFontSize + 2, `${c.l}mm H`, contrast, hFontSize+"px", 0, "", "start");
+            }
+            if (pL > 20) {
+                drawLabel(svg, pW/2, curY + (pL/2) - 2, c.name, contrast, nameFontSize+"px", 0, "", "middle");
+                drawLabel(svg, pW/2, curY + (pL/2) + (wFontSize + 2), `${c.w}mm W`, contrast, wFontSize+"px", 0, "", "middle");
+            }
+
+            if (c.w < stockW) {
+                const vKerf = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                vKerf.setAttribute("class", "kerf-indicator");
+                vKerf.setAttribute("x", pW); vKerf.setAttribute("y", curY);
+                vKerf.setAttribute("width", kerf * scale); vKerf.setAttribute("height", pL);
+                vKerf.setAttribute("fill", "#000");
+                svg.appendChild(vKerf);
+                if (offcutW > 0) {
+                    const offRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    offRect.setAttribute("class", "offcut-area");
+                    offRect.setAttribute("x", pW + (kerf * scale)); offRect.setAttribute("y", curY);
+                    offRect.setAttribute("width", offcutW * scale); offRect.setAttribute("height", pL);
+                    offRect.setAttribute("fill", "#edf2f7");
+                    offRect.setAttribute("stroke", "#cbd5e0"); offRect.setAttribute("stroke-dasharray", "4");
+                    svg.appendChild(offRect);
+                }
+            }
+            const row = summaryBody.insertRow();
+            row.innerHTML = `<td>#${index + 1}</td><td><strong>${c.name}</strong></td><td>${c.w}mm</td><td>${c.l}mm</td><td>${offcutW > 0 ? offcutW.toFixed(0) + 'mm' : '-'}</td><td>[ ]</td>`;
+            curY += pL;
+            totalUsedL += c.l;
+            if (index < cuts.length) {
+                const kRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                kRect.setAttribute("class", "kerf-indicator");
+                kRect.setAttribute("x", 0); kRect.setAttribute("y", curY);
+                kRect.setAttribute("width", maxVisualWidth); kRect.setAttribute("height", kerf * scale);
+                kRect.setAttribute("fill", "#ff0000");
+                kRect.setAttribute("stroke", "#000"); kRect.setAttribute("stroke-width", "0.5");
+                svg.appendChild(kRect);
+                curY += (kerf * scale);
+                totalUsedL += kerf;
+            }
+        });
+        const rem = stockL - totalUsedL;
+        const stats = document.getElementById(`stats-${boardId}`);
+        stats.children[0].innerText = `USED: ${totalUsedL.toFixed(1)}mm`;
+        stats.children[1].innerText = `REMAINING: ${rem.toFixed(1)}mm`;
+        if (rem > 0) {
+            const remRow = summaryBody.insertRow();
+            remRow.className = "remaining-piece-row";
+            remRow.innerHTML = `<td>#${cuts.length + 1}</td><td><strong>ESTIMATED REMAINING SHEET</strong></td><td>${stockW}mm</td><td>~${rem.toFixed(1)}mm</td><td>-</td><td>[ ]</td>`;
+        }
+        if (rem > 10) {
+            const remFontSize = Math.min(16, (rem * scale) / 2.5);
+            drawLabel(svg, maxVisualWidth/2, curY + (rem * scale / 2) + 5, `REMAINING: ${rem.toFixed(1)}mm`, "#4a5568", remFontSize+"px", 0, "print-hide", "middle");
+        }
+    }
+
+    function drawLabel(svg, x, y, txt, col, size, angle, className, anchor) {
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        if(className) t.setAttribute("class", className);
+        t.setAttribute("x", x); t.setAttribute("y", y);
+        t.setAttribute("font-size", size); t.setAttribute("text-anchor", anchor || "middle");
+        t.setAttribute("fill", col); t.style.fontWeight = "bold";
+        t.style.pointerEvents = "none";
+        t.textContent = txt;
+        if(angle !== 0) t.setAttribute("transform", `rotate(${angle}, ${x}, ${y})`);
+        svg.appendChild(t);
+    }
+
+    function resetBoard(boardId) {
+        const board = document.getElementById(boardId);
+        board.dataset.cuts = JSON.stringify([]);
+        board.querySelector('.cutName').value = "Strip 1";
+        renderBoard(boardId);
+    }
+
+    function updateUI(boardId) {
+        const val = document.getElementById(boardId).querySelector('.board-title-input').value;
+        document.getElementById(`display-title-${boardId}`).innerText = val.toUpperCase();
+    }
+
+    function getContrastYIQ(hex){
+        hex = hex.replace("#", "");
+        let r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+        return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? 'black' : 'white';
+    }
+
+    window.onresize = () => document.querySelectorAll('.board-container').forEach(b => renderBoard(b.id));
+    addNewBoard();
+</script>
+</body>
+</html>
